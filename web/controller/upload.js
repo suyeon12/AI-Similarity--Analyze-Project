@@ -1,6 +1,11 @@
 const multer = require("multer")
 const storage = multer.memoryStorage();
-const spawn = require('child_process').spawn;
+//const {spawn} = require('child_process');
+const { resolve } = require("path");
+const { setEnvironmentData } = require("worker_threads");
+//const similar =require('./similar.js')
+//const pool = require('../modules/pool.js')
+
 
 
 const filefilter = (req, file, cb) => {
@@ -17,9 +22,10 @@ var upload = multer({
 }).single("case");
 
 
-module.exports.upload = function(req, res, next) {
-    
-	upload(req,res,function(err) {
+var exports = module.exports = {};
+
+exports.upload = function(req, res, next) {
+    upload(req,res,function(err) {
 		const file = req.file;
 		if(err) {
 			res.send(err)
@@ -27,31 +33,31 @@ module.exports.upload = function(req, res, next) {
 
         else {
 			const checked = req.body.type;
-			const multerText = Buffer.from(file.buffer).toString("utf-8")
-			const result = multerText
+			const result = Buffer.from(file.buffer).toString("utf-8")
+			//global.result = result
+
 			const id = Math.random().toString(36).slice(2)
 			
-			
+			// let dataString;
 			var cases = {
 				type : checked,
 				content : result,
 				id : id
 			}
-
+					
 			var jsoncases = JSON.stringify(cases)
+			global.jsoncases=jsoncases 
+			//console.log(jsoncases)
 
-			// console.log(cases)
-			console.log(jsoncases)
+			res.redirect('/board' )
+			//})
+			}
 
-			const python = spawn('python', ['../../search_run.py', jsoncases]);
-			
-            python.stdout.on('data', (function(chunk,error){
-                if(error) console.log("Error",error)
-                var textChunk = chunk.toString('utf8');
-                console.log("return value: "+textChunk)
-            }))
-			
-            res.redirect('/board')
-        }
-	})
+		})
+
+}
+
+exports.getData = function(){
+	//console.log("result : ",jsoncases)
+	return jsoncases;
 }
